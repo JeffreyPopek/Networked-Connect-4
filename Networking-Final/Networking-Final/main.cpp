@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <array>
+#include <iostream>
 
 const int ROWS = 6;
 const int COLUMNS = 7;
@@ -19,29 +20,55 @@ Color pieceColor;
 
 bool DropPiece(int col, Player player)
 {
-    switch (player)
+    for (int row = ROWS - 1; row >= 0; --row)
     {
-        case NONE:
-            break;
-        case PLAYER1:
-            currentPlayer = PLAYER2;
-            pieceColor = YELLOW;
-            break;
-        case PLAYER2:
-            currentPlayer = PLAYER1;
-            pieceColor = RED;
-            break;
-        default:
-            break;
+        if (board[row][col] == NONE)
+        {
+			// set board position to player
+            board[row][col] = player;
+            return true;
+        }
     }
-    return false;
+    return false; 
+
 }
 
 bool CheckWin(Player player)
 {
     // implement
+    switch (player)
+    {
+    case NONE:
+        break;
+    case PLAYER1:
+        currentPlayer = PLAYER2;
+        pieceColor = YELLOW;
+        break;
+    case PLAYER2:
+        currentPlayer = PLAYER1;
+        pieceColor = RED;
+        break;
+    default:
+        break;
+    }
+    return false;
+
     return false;
 }
+
+bool IsBoardFull()
+{
+    for (int row = 0; row < ROWS; ++row)
+    {
+        for (int col = 0; col < COLUMNS; ++col)
+        {
+            if (board[row][col] == NONE)
+                return false;
+        }
+    }
+    return true; 
+}
+
 
 int main()
 {
@@ -71,11 +98,17 @@ int main()
                 // drop piece in column
                 if (DropPiece(selectedColumn, currentPlayer))
                 {
-                    // check for player win based on player
+                    // check for player win based on player and switch player
                     if (CheckWin(currentPlayer))
                     {
                         gameOver = true;
                         winner = currentPlayer;
+                    }
+                    else if (IsBoardFull())
+                    {
+                        std::cout << "GAME TIED" << std::endl;
+                        gameOver = true;
+                        winner = NONE;
                     }
                 }
             }
@@ -130,13 +163,13 @@ int main()
             switch (winner)
             {
                 case NONE:
-                    // do nothing
+                    DrawText("Draw?! Press R to restart", 50, 10, 20, BLACK);
                     break;
                 case PLAYER1:
-                    DrawText("Player 1 Wins! Press R to Restart", 50, 10, 20, RED);
+                    DrawText("Player 1 Wins! Press R to restart", 50, 10, 20, RED);
                     break;
                 case PLAYER2:
-                    DrawText("Player 2 Wins! Press R to Restart", 50, 10, 20, YELLOW);
+                    DrawText("Player 2 Wins! Press R to restart", 50, 10, 20, YELLOW);
                     break;
                 default:
                     break;
