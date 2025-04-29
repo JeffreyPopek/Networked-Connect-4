@@ -66,6 +66,18 @@ bool CheckWin(Player player)
                 return true;
 
 
+    // Diagonal 
+    for (int row = 3; row < MAX_ROWS; row++)
+        for (int col = 0; col <= MAX_COLUMNS - 4; col++)
+            if (board[row][col] == player && board[row - 1][col + 1] == player && board[row - 2][col + 2] == player && board[row - 3][col + 3] == player)
+                return true;
+
+    for (int row = 0; row <= MAX_ROWS - 4; row++)
+        for (int col = 0; col <= MAX_COLUMNS - 4; col++)
+            if (board[row][col] == player && board[row + 1][col + 1] == player && board[row + 2][col + 2] == player && board[row + 3][col + 3] == player)
+                return true;
+
+
     // switch player if not a win
     switch (player)
     {
