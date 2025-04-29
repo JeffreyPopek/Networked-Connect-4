@@ -128,11 +128,9 @@ bool CheckInput() {
                     gameOver = true;
                     winner = NONE;
                 }
-                else {
-                    waitingForResponse = true;
-                }
             }
 
+            waitingForResponse = true;
             return true;
         }
     }
@@ -287,6 +285,8 @@ int RunClient() {
 		waitingForConnection = false;
         waitingForResponse = true;
         std::cout << "Joining: Connected to host!" << std::endl;
+
+        DrawBoard();
 
         while (isConnected) {
             if (!waitingForResponse) {
