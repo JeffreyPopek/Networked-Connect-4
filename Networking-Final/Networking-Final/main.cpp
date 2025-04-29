@@ -2,14 +2,14 @@
 #include <array>
 #include <iostream>
 
-const int ROWS = 6;
-const int COLUMNS = 7;
+const int MAX_ROWS = 6;
+const int MAX_COLUMNS = 7;
 const int CELL_SIZE = 100;
 
 enum Player { NONE = 0, PLAYER1, PLAYER2 };
 
 // 2d array board
-std::array<std::array<Player, COLUMNS>, ROWS> board = {};
+std::array<std::array<Player, MAX_COLUMNS>, MAX_ROWS> board = {};
 
 // Game state vars
 Player currentPlayer = PLAYER1;
@@ -20,7 +20,7 @@ Color pieceColor;
 
 bool DropPiece(int col, Player player)
 {
-    for (int row = ROWS - 1; row >= 0; --row)
+    for (int row = MAX_ROWS - 1; row >= 0; --row)
     {
         if (board[row][col] == NONE)
         {
@@ -35,32 +35,53 @@ bool DropPiece(int col, Player player)
 
 bool CheckWin(Player player)
 {
-    // implement
+    /*
+        check for each piece across
+        in each row look across columns to find 4 same colored pieces in a row
+        check each row
+    */
+    for (int row = 0; row < MAX_ROWS; row++)
+        for (int col = 0; col <= MAX_COLUMNS - 4; col++)
+            if (board[row][col] == player && board[row][col + 1] == player && board[row][col + 2] == player && board[row][col + 3] == player)
+                return true;
+
+
+    /*
+        check for each piece vert
+        in each column look down rows to find 4 same colored pieces in a column
+        check each column
+    */
+    for (int col = 0; col < MAX_COLUMNS; col++)
+        for (int row = 0; row <= MAX_ROWS - 4; row++)
+            if (board[row][col] == player && board[row + 1][col] == player && board[row + 2][col] == player && board[row + 3][col] == player)
+                return true;
+
+
+    // switch player if not a win
     switch (player)
     {
-    case NONE:
-        break;
-    case PLAYER1:
-        currentPlayer = PLAYER2;
-        pieceColor = YELLOW;
-        break;
-    case PLAYER2:
-        currentPlayer = PLAYER1;
-        pieceColor = RED;
-        break;
-    default:
-        break;
+        case NONE:
+            break;
+        case PLAYER1:
+            currentPlayer = PLAYER2;
+            pieceColor = YELLOW;
+            break;
+        case PLAYER2:
+            currentPlayer = PLAYER1;
+            pieceColor = RED;
+            break;
+        default:
+            break;
     }
-    return false;
 
     return false;
 }
 
 bool IsBoardFull()
 {
-    for (int row = 0; row < ROWS; ++row)
+    for (int row = 0; row < MAX_ROWS; ++row)
     {
-        for (int col = 0; col < COLUMNS; ++col)
+        for (int col = 0; col < MAX_COLUMNS; ++col)
         {
             if (board[row][col] == NONE)
                 return false;
@@ -72,8 +93,8 @@ bool IsBoardFull()
 
 int main()
 {
-    int screenWidth = COLUMNS * CELL_SIZE;
-    int screenHeight = (ROWS + 1) * CELL_SIZE;
+    int screenWidth = MAX_COLUMNS * CELL_SIZE;
+    int screenHeight = (MAX_ROWS + 1) * CELL_SIZE;
 
     InitWindow(screenWidth, screenHeight, "connect 4 tuah!");
 
@@ -87,10 +108,10 @@ int main()
         {
             // move on top
             if (IsKeyPressed(KEY_LEFT))  
-                selectedColumn = (selectedColumn - 1 + COLUMNS) % COLUMNS;
+                selectedColumn = (selectedColumn - 1 + MAX_COLUMNS) % MAX_COLUMNS;
 
             else if (IsKeyPressed(KEY_RIGHT)) 
-                selectedColumn = (selectedColumn + 1) % COLUMNS;
+                selectedColumn = (selectedColumn + 1) % MAX_COLUMNS;
 
             // place piece
             else if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER))
@@ -103,6 +124,7 @@ int main()
                     {
                         gameOver = true;
                         winner = currentPlayer;
+						pieceColor = LIGHTGRAY; // make piece color same color as bg to hide
                     }
                     else if (IsBoardFull())
                     {
@@ -130,7 +152,7 @@ int main()
         ClearBackground(RAYWHITE);
 
         // selection
-        for (int col = 0; col < COLUMNS; col++)
+        for (int col = 0; col < MAX_COLUMNS; col++)
         {
 			if (col == selectedColumn)
 				DrawRectangle(col * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE, pieceColor);
@@ -139,9 +161,9 @@ int main()
         }
 
         // Draw board
-        for (int row = 0; row < ROWS; row++)
+        for (int row = 0; row < MAX_ROWS; row++)
         {
-            for (int col = 0; col < COLUMNS; col++)
+            for (int col = 0; col < MAX_COLUMNS; col++)
             {
                 int x = col * CELL_SIZE + CELL_SIZE / 2;
                 int y = (row + 1) * CELL_SIZE + CELL_SIZE / 2;
