@@ -14,6 +14,7 @@ const int PORT = 8080;
 bool isConnected = false;
 bool waitingForConnection = false;
 bool waitingForResponse = false;
+bool resetGame = false;
 
 enum Player { NONE = 0, PLAYER1, PLAYER2 };
 
@@ -26,6 +27,8 @@ int selectedColumn = 0;
 bool gameOver = false;
 Player winner = NONE;
 Color pieceColor;
+
+Player you; // host is p1, online is p2
 
 bool DropPiece(int col, Player player)
 {
@@ -111,16 +114,22 @@ bool IsBoardFull()
     return true; 
 }
 
-bool CheckInput() {
-    if (!gameOver)
+bool CheckInput() 
+{
+	bool inputDetected = false;
+    if (!gameOver && currentPlayer == you)
     {
         // move on top
         if (IsKeyPressed(KEY_LEFT))
+        {
             selectedColumn = (selectedColumn - 1 + MAX_COLUMNS) % MAX_COLUMNS;
-
+			inputDetected = true;
+        }
         else if (IsKeyPressed(KEY_RIGHT))
+        {
             selectedColumn = (selectedColumn + 1) % MAX_COLUMNS;
-
+            inputDetected = true;
+        }
         // place piece
         else if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER))
         {
@@ -143,10 +152,10 @@ bool CheckInput() {
             }
 
             waitingForResponse = true;
-            return true;
+            inputDetected = true;
         }
     }
-    else
+    else if(gameOver)
     {
         if (IsKeyPressed(KEY_R))
         {
@@ -156,22 +165,26 @@ bool CheckInput() {
             winner = NONE;
             currentPlayer = PLAYER1;
             selectedColumn = 0;
+            inputDetected = true;
         }
     }
 
-    return false;
+    return inputDetected;
 }
 
-void DrawBoard() {
+void DrawBoard() 
+{
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-	if (waitingForConnection) {
+	if (waitingForConnection) 
+    {
 		DrawText("Waiting for connection...", 50, 10, 20, BLACK);
 		EndDrawing();
         return;
 	}
-    else if (!isConnected) {
+    else if (!isConnected) 
+    {
         DrawText("Press 'H' to host", 50, 10, 20, BLACK);
         DrawText("Press 'J' to join", 50, 40, 20, BLACK);
         EndDrawing();
@@ -235,7 +248,8 @@ void DrawBoard() {
     EndDrawing();
 }
 
-bool ReceiveData(Socket& socket, std::string& data) {
+bool ReceiveData(Socket& socket, std::string& data) 
+{
 	char buffer[1024];
 	int bytesReceived = socket.Recv(buffer, sizeof(buffer));
 
@@ -247,44 +261,53 @@ bool ReceiveData(Socket& socket, std::string& data) {
 	return false;
 }
 
-std::string SerializeBoard() {
-    std::stringstream ss;
-    ss.write((const char*)&currentPlayer, sizeof(Player));
-	ss.write((const char*)&waitingForResponse, sizeof(bool));
+std::string SerializeBoard() 
+{
+    std::stringstream gameState;
+
+    gameState.write((char*)&currentPlayer, sizeof(Player));
+    gameState.write((char*)&waitingForResponse, sizeof(bool));
+    gameState.write((char*)&gameOver, sizeof(bool));
+    gameState.write((char*)&winner, sizeof(Player));
+    gameState.write((char*)&pieceColor, sizeof(Color));
+    gameState.write((char*)&selectedColumn, sizeof(int));
 
     for (int row = 0; row < MAX_ROWS; row++)
-    {
         for (int col = 0; col < MAX_COLUMNS; col++)
-        {
-			ss.write((const char*)&board[row][col], sizeof(Player));
-        }
-    }
+            gameState.write((char*)&board[row][col], sizeof(Player));
 
-	return ss.str();
+    return gameState.str();
 }
 
-void DeserializeBoard(std::stringstream gameState) {
+void DeserializeBoard(const std::string& data) 
+{
+    std::stringstream gameState(data);
+
     gameState.read((char*)&currentPlayer, sizeof(Player));
-	gameState.read((char*)&waitingForResponse, sizeof(bool));
+    gameState.read((char*)&waitingForResponse, sizeof(bool));
+    gameState.read((char*)&gameOver, sizeof(bool));
+    gameState.read((char*)&winner, sizeof(Player));
+    gameState.read((char*)&pieceColor, sizeof(Color));
+    gameState.read((char*)&selectedColumn, sizeof(int));
 
     for (int row = 0; row < MAX_ROWS; row++)
-    {
         for (int col = 0; col < MAX_COLUMNS; col++)
-        {
-			gameState.read((char*)&board[row][col], sizeof(Player));
-        }
-    }
+            gameState.read((char*)&board[row][col], sizeof(Player));
 
     waitingForResponse = !waitingForResponse;
 }
 
-int RunClient() {
+int RunClient()
+{
 	SockLibInit();
 
 	Socket clientSock(Socket::Family::INET, Socket::Type::STREAM);
 
     waitingForConnection = true;
     std::cout << "Joining: Waiting for connection..." << std::endl;
+
+    you = PLAYER2;
+
     DrawBoard();
 
     while (!WindowShouldClose()) {
@@ -312,7 +335,7 @@ int RunClient() {
 				// opponent's turn
                 std::string gameState;
                 if (ReceiveData(clientSock, gameState)); {
-                    DeserializeBoard(std::stringstream(gameState));
+                    DeserializeBoard(gameState);
                 }
             }
 
@@ -324,7 +347,8 @@ int RunClient() {
     return 0;
 }
 
-int RunHost() {
+int RunHost() 
+{
     SockLibInit();
 
 	Socket hostSock(Socket::Family::INET, Socket::Type::STREAM);
@@ -332,6 +356,9 @@ int RunHost() {
 
 	waitingForConnection = true;
     std::cout << "Hosting: Waiting for connection..." << std::endl;
+
+    you = PLAYER1;
+
     DrawBoard();
 
 	hostSock.Listen();
@@ -355,7 +382,7 @@ int RunHost() {
                 // opponent's turn
                 std::string gameState;
                 if (ReceiveData(clientSock, gameState)) {
-                    DeserializeBoard(std::stringstream(gameState));
+                    DeserializeBoard(gameState);
                 }
             }
 
