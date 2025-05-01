@@ -141,7 +141,6 @@ bool CheckInput()
                 {
                     gameOver = true;
                     winner = currentPlayer;
-                    pieceColor = LIGHTGRAY; // make piece color same color as bg to hide
                 }
                 else if (IsBoardFull())
                 {
@@ -163,8 +162,9 @@ bool CheckInput()
             board = {};
             gameOver = false;
             winner = NONE;
-            currentPlayer = PLAYER1;
+            currentPlayer = you;
             selectedColumn = 0;
+			waitingForResponse = false;
             inputDetected = true;
         }
     }
@@ -194,7 +194,7 @@ void DrawBoard()
     // selection
     for (int col = 0; col < MAX_COLUMNS; col++)
     {
-        if (col == selectedColumn)
+        if (col == selectedColumn && !gameOver)
             DrawRectangle(col * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE, pieceColor);
         else
             DrawRectangle(col * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE, LIGHTGRAY);
@@ -222,19 +222,37 @@ void DrawBoard()
     // draw game state messages
     if (gameOver)
     {
-        switch (winner)
-        {
-        case NONE:
-            DrawText("Draw?! Press R to restart", 50, 10, 20, BLACK);
-            break;
-        case PLAYER1:
-            DrawText("Player 1 Wins! Press R to restart", 50, 10, 20, RED);
-            break;
-        case PLAYER2:
-            DrawText("Player 2 Wins! Press R to restart", 50, 10, 20, YELLOW);
-            break;
-        default:
-            break;
+        if (!waitingForResponse) {
+            switch (winner)
+            {
+            case NONE:
+                DrawText("Draw?! Press R to restart", 50, 10, 20, BLACK);
+                break;
+            case PLAYER1:
+                DrawText("Player 1 Wins! Press R to restart", 50, 10, 20, RED);
+                break;
+            case PLAYER2:
+                DrawText("Player 2 Wins! Press R to restart", 50, 10, 20, YELLOW);
+                break;
+            default:
+                break;
+            }
+        }
+        else {
+            switch (winner)
+            {
+            case NONE:
+                DrawText("Draw?! Waiting for opponent to restart...", 50, 10, 20, BLACK);
+                break;
+            case PLAYER1:
+                DrawText("Player 1 Wins! Waiting for opponent to restart...", 50, 10, 20, RED);
+                break;
+            case PLAYER2:
+                DrawText("Player 2 Wins! Waiting for opponent to restart...", 50, 10, 20, YELLOW);
+                break;
+            default:
+                break;
+            }
         }
     }
     else
