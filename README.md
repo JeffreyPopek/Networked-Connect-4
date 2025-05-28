@@ -1,6 +1,6 @@
-# Online Connect 4
+# Networked Connect 4
 
-**Online Connect 4** is a networked version of the classic Connect 4 game, built in C++ using [Raylib](https://www.raylib.com/) and custom socket programming. This project was developed during my final semester at Champlain College to explore the fundamentals of multiplayer networking and client-server architecture.
+**Networked Connect 4** is a networked version of the classic Connect 4 game, built in C++ using [Raylib](https://www.raylib.com/) and custom socket programming. This project was developed during my final semester at Champlain College to explore the fundamentals of multiplayer networking and client-server architecture.
 
 ## Features
 - **Multiplayer Networking**: Two players can connect and play over a local network using a custom TCP socket system.
