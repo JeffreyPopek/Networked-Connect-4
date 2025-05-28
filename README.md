@@ -27,5 +27,6 @@ For more info on the development process, refer to the [full blog post](https://
 3. Follow on-screen instructions to connect and begin playing.
 
 ## Controls
+- **Left/Right Arrow**: Move between the upper columns
 - **Enter/Space**: Drop a piece in the selected column
 - **Escape**: Quit the game
